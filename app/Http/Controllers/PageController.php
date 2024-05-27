@@ -12,14 +12,11 @@ class PageController extends Controller
     {
         if ($request->get('for-my')) {
             $user = $request->user();
+            $userIds = $user->friends()->pluck('id')->push($user->id);
 
-            $friendsFromIds = $user->friendsFrom()->pluck('users.id');
-            $friendsToIds = $user->friendsTo()->pluck('users.id');
-            $userIds = $friendsFromIds->merge($friendsToIds)->push($user->id);
-
-            $posts = Post::whereIn('user_id', $userIds)->latest()->get();
+            $posts = Post::whereIn('user_id', $userIds)->latest()->with('user')->get();
         } else {
-            $posts = Post::latest()->get();
+            $posts = Post::latest()->with('user')->get();
         }
 
         return view('dashboard', compact('posts'));

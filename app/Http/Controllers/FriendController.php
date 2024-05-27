@@ -9,15 +9,9 @@ class FriendController extends Controller
 {
     public function store(Request $request, User $user)
     {
-        if ($request->user()->isFriend($user)) {
-            return back();
+        if (!$request->user()->isFriend($user)) {
+            $request->user()->from()->attach($user);
         }
-
-        if ($request->user()->id === $user->id) {
-            return back();
-        }
-
-        $request->user()->from()->attach($user);
 
         return back();
     }
