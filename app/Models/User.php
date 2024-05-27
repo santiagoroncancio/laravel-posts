@@ -44,4 +44,59 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    // Relation
+    public function from()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'from_id', 'to_id');
+    }
+
+    public function to()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'to_id', 'from_id');
+    }
+
+    // Friends
+    public function friendsFrom()
+    {
+        return $this->from()->wherePivot('accepted', true);
+    }
+
+    public function friendsTo()
+    {
+        return $this->to()->wherePivot('accepted', true);
+    }
+
+    // Pending Friends
+    public function pendingFrom()
+    {
+        return $this->from()->wherePivot('accepted', false);
+    }
+
+    public function pendingTo()
+    {
+        return $this->to()->wherePivot('accepted', false);
+    }
+
+    public function isFriend(User $user)
+    {
+        if (auth()->user()->id === $user->id) {
+            return true;
+        }
+
+        $isFrom = $this->from()->where('to_id', $user->id)->exists();
+        $isTo = $this->to()->where('from_id', $user->id)->exists();
+
+        return $isFrom || $isTo;
+    }
+
+    public function friends()
+    {
+        return $this->friendsFrom->merge($this->friendsTo);
+    }
 }
